@@ -1,0 +1,103 @@
+<html>
+<head>
+	<title></title>
+	<style type="text/css">
+	img { position: absolute; top: 0; left: 0;}
+	div { position: absolute;}
+	div span { background-color: #FFF;}
+	</style>
+</head>
+<body>
+
+<img id="mainImage">
+<div>
+	<a href="index.html">Index</a>
+	<button onClick="preload();">Preload</button>
+	<button onClick="animate();">Start</button>
+	<br/><span id="fps"></span>
+	<br/><span id="msg"></span>
+</div>
+
+<script src="jquery.min.js"></script>
+<script type="text/javascript">
+
+var urlParams = {};
+(function () {
+    var match,
+        pl     = /\+/g,  // Regex for replacing addition symbol with a space
+        search = /([^&=]+)=?([^&]*)/g,
+        decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
+        query  = window.location.search.substring(1);
+
+    while (match = search.exec(query))
+       urlParams[decode(match[1])] = decode(match[2]);
+})();
+
+var filterStrength = 20;
+var frameTime = 0, lastLoop = new Date, thisLoop;
+
+function updateFPS(){
+  var thisFrameTime = (thisLoop=new Date) - lastLoop;
+  frameTime+= (thisFrameTime - frameTime) / filterStrength;
+  lastLoop = thisLoop;
+}
+
+// Report the fps only every second, to only lightly affect measurements
+var fpsOut = document.getElementById('fps');
+setInterval(function(){
+  fpsOut.innerHTML = (1000/frameTime).toFixed(1) + " fps";
+},1000);
+
+var msg = null,
+	mainImage = null,
+	imageParent = null,
+	images = [],
+	width = urlParams['width'] || 100,
+	numImages = 100;
+
+$(function() {
+	msg = document.getElementById('msg');
+	mainImage = document.getElementById('mainImage');
+	mainImage.width = width;
+	//imageParent = mainImage.parentNode;
+	//images.push(mainImage);
+});
+
+function log(m) {
+	msg.innerHTML = m;
+}
+
+function animate(index) {
+	index = index || 0;
+	mainImage.src = getpath(index);
+	//imageParent.replaceChild(images[index+1], images[index]);
+	index++;
+	if (index < numImages) {
+		setTimeout(function() {
+			animate(index);
+		}, 37);
+	}
+	updateFPS();
+}
+
+function getpath(index) {
+	return 'images/' + width + '/test' + index + '.png';
+}
+
+function preload(index) {
+	index = index || 1;
+	var image = new Image();
+	image.src = getpath(index);
+	image.onload = function() {
+		log('Preloaded ' + index);
+		if (index < numImages)
+			preload(index+1);
+	};
+	images.push(image);
+	console.log(images.length);
+}
+
+</script>
+
+</body>
+</html>
